@@ -3,45 +3,43 @@
 
 /*
  Update - 06/09/2024:
- This code succesfully gives the player movement
+ This code succesfully gives the player jumping capabilities, and prevents us from jumping in air by keeping track of whether we are grounded
  */
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class NewBehaviourScript : MonoBehaviour
+public class PlayerMovement : MonoBehaviour
 {
-    // Declares the variable that will represent the speed of the player
-    public float speed = 5f;
-
-    // Declares the variable taht will represent the running speed of the player
-    public float runSpeed = 10f;
+    // Variable declarations
+    public float speed = 5f; // Walking speed
+    public float runSpeed = 10f; // Running speed
+    public float jumpForce = 8f; // Jump Force
+    public bool isOnGround = false; // Status of whether the player is on ground, starts at false since the player falls at start of game
+   
+    private Rigidbody rb; // A rigidbody component, gives physics to player
     // Start is called before the first frame update
     void Start()
     {
-        
+        rb = GetComponent<Rigidbody>(); // Retrieves the rigidbody component from the unity editor, associated with the player object
     }
 
     // Update is called once per frame
     void Update()
     {
-        // Gets the input from the A and D keys, and the left and right arrows
-        float moveHorizontal = Input.GetAxis("Horizontal");
-        
-        // Gets the input from the W and S keys, and the up and down arrows
-        float moveVertical = Input.GetAxis("Vertical");
-
-        // Check if the left shift key (Which represents run) is being pressed 
-        bool isRunning = Input.GetKey(KeyCode.LeftShift);
-
-        float currentSpeed;
+        // Gets the input from the keyboard
+        float moveHorizontal = Input.GetAxis("Horizontal"); // A&D and Left/Right keys
+        float moveVertical = Input.GetAxis("Vertical"); // W&S and Up/Down keys
+        bool isRunning = Input.GetKey(KeyCode.LeftShift); // Check if the left shift key (Which represents run) is being pressed 
 
 
         // Checks if isRunning is true, and if so will set current speed to runspeed
+        float currentSpeed; // Declares current speed
         if (isRunning)
         {
             currentSpeed = runSpeed;
         }
+
         else
         {
             currentSpeed = speed;
@@ -60,5 +58,25 @@ public class NewBehaviourScript : MonoBehaviour
         // "transform" references in this case the players position, while ".Translate" updates the position by the movement vector
         // By calling "transform.Translate(movement)" each frame, we move the player according to the input received
         transform.Translate(movement);
+
+        
+
+        // Jump Controls
+       
+        if (Input.GetKeyDown(KeyCode.Space)&& isOnGround) // Checks if the jump button (Spacebar) is pressed, and if the player is on the ground
+        {
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse); // We add force to our player based off of our jump force
+            isOnGround = false; // So we can't jump midair
+        }
     }
+
+    private void OnCollisionEnter(Collision collision) // Whenever our object collides with something this is called
+    {
+        if (collision.gameObject.CompareTag("Ground")) // If our player collides with an object tagged "Ground"
+        {
+            isOnGround = true; // We can jump again
+        }
+    }
+
+
 }
